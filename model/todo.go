@@ -1,6 +1,10 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"log"
+
+	"gorm.io/gorm"
+)
 
 type Todo struct {
 	gorm.Model
@@ -38,12 +42,24 @@ func (um *TodoModel) AddTodo(newData Todo) (Todo, error) {
 // 	return nil
 // }
 
-// func (um *TodoModel) GetAllTodo() ([]Todo, error) {
-// 	var result []Todo
+func (um *TodoModel) GetTodos(id uint) ([]Todo, error) {
+	var result []Todo
 
-// 	if err := um.Connection.Find(&result).Error; err != nil {
-// 		return nil, err
-// 	}
+	if err := um.Connection.Where("user_id = ?", id).Find(&result).Error; err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
 
-// 	return result, nil
-// }
+	return result, nil
+}
+
+func (um *TodoModel) GetTodo(id uint) (Todo, error) {
+	var result Todo
+
+	if err := um.Connection.Where("id = ?", id).First(&result).Error; err != nil {
+		log.Println(err.Error())
+		return Todo{}, err
+	}
+
+	return result, nil
+}
