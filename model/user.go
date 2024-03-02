@@ -3,9 +3,11 @@ package model
 import "gorm.io/gorm"
 
 type User struct {
-	Nama     string `json:"nama" form:"nama" validate:"required"`
-	Hp       string `json:"hp" form:"hp" validate:"required,max=13,min=10"`
-	Password string `json:"password" form:"password" validate:"required"`
+	gorm.Model
+	Nama     string `validate:"required"`
+	Hp       string `gorm:"unique"`
+	Password string `validate:"required"`
+	Todos    []Todo `gorm:"foreignKey:UserID"`
 }
 
 type UserModel struct {

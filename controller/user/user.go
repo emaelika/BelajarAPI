@@ -55,6 +55,10 @@ func (us *UserController) Register() echo.HandlerFunc {
 
 		err = us.Model.AddUser(processInput) // ini adalah fungsi yang kita buat sendiri
 		if err != nil {
+			if strings.Contains(err.Error(), "Duplicate") {
+				return c.JSON(http.StatusConflict,
+					helper.ResponseFormat(http.StatusConflict, "nomor sudah didaftarkan", nil))
+			}
 			return c.JSON(http.StatusInternalServerError,
 				helper.ResponseFormat(http.StatusInternalServerError, "terjadi kesalahan pada sistem", nil))
 		}
@@ -90,7 +94,7 @@ func (us *UserController) Login() echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError,
 				helper.ResponseFormat(http.StatusInternalServerError, "terjadi kesalahan pada sistem", nil))
 		}
-		token, err := middlewares.GenerateJWT(result.Hp)
+		token, err := middlewares.GenerateJWT(result.ID)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError,
 				helper.ResponseFormat(http.StatusInternalServerError, "terjadi kesalahan pada sistem, gagal memproses data", nil))
@@ -109,7 +113,7 @@ func (us *UserController) Login() echo.HandlerFunc {
 
 func (us *UserController) Update() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var hp = c.Param("hp")
+		var hp = c.Param("id")
 		var input model.User
 		err := c.Bind(&input)
 		if err != nil {
@@ -156,7 +160,7 @@ func (us *UserController) ListUser() echo.HandlerFunc {
 
 func (us *UserController) Profile() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var hp = c.Param("hp")
+		var hp = c.Param("id")
 		result, err := us.Model.GetProfile(hp)
 
 		if err != nil {

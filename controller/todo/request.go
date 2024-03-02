@@ -1,12 +1,7 @@
-package user
+package todo
 
-type LoginRequest struct {
-	Hp       string `json:"hp" form:"hp" validate:"required,max=13,min=10"`
-	Password string `json:"password" form:"password" validate:"required"`
-}
-
-type RegisterRequest struct {
-	Nama     string `json:"nama" form:"nama" validate:"required"`
-	Hp       string `json:"hp" form:"hp" validate:"required,max=13,min=10"`
-	Password string `json:"password" form:"password" validate:"required"`
+type TodoRequest struct {
+	Kegiatan  string `json:"kegiatan" form:"kegiatan" validate:"required"`
+	Deskripsi string `json:"deskripsi" form:"deskripsi" validate:"required"`
+	Deadline  string `json:"deadline" form:"deadline" validate:"required,datetime=2006-01-02"`
 }
