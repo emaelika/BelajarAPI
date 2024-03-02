@@ -31,4 +31,7 @@ func InitRoute(c *echo.Echo, ctl user.UserController, tc todo.TodoController) {
 	c.GET("/todos/:id", tc.GetTodo(), echojwt.WithConfig(echojwt.Config{
 		SigningKey: []byte(config.JWTSECRET),
 	}))
+	c.PUT("/todos/:id", tc.UpdateTodo(), echojwt.WithConfig(echojwt.Config{
+		SigningKey: []byte(config.JWTSECRET),
+	}))
 }
