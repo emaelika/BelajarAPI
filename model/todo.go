@@ -63,3 +63,24 @@ func (um *TodoModel) GetTodo(id uint) (Todo, error) {
 
 	return result, nil
 }
+func (um *TodoModel) UpdateTodo(newTodo Todo) (Todo, error) {
+	var data Todo
+	log.Println(newTodo)
+	if err := um.Connection.First(&data, newTodo.ID).
+		Error; err != nil {
+		log.Println(err.Error())
+		return Todo{}, err
+	}
+	data.Deskripsi = newTodo.Deskripsi
+	data.Deadline = newTodo.Deadline
+	data.Kegiatan = newTodo.Kegiatan
+	if err := um.Connection.Save(&data).
+		Error; err != nil {
+		log.Println(err.Error())
+		return Todo{}, err
+	}
+
+	log.Println(newTodo)
+
+	return newTodo, nil
+}
