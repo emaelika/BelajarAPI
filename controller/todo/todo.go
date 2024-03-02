@@ -4,6 +4,7 @@ import (
 	"21-api/helper"
 	"21-api/middlewares"
 	"21-api/model"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -46,18 +47,13 @@ func (us *TodoController) AddTodo() echo.HandlerFunc {
 		if err != nil {
 
 			log.Println(err.Error())
-			// var message = []string{}
-			// for _, val := range err.(validator.ValidationErrors) {
-			// 	if val.Tag() == "required" {
-			// 		message = append(message, fmt.Sprint(val.Field(), " wajib diisi"))
-			// 	} else if val.Tag() == "min" {
-			// 		message = append(message, fmt.Sprint(val.Field(), " minimal 10 digit"))
-			// 	} else {
-			// 		message = append(message, fmt.Sprint(val.Field(), " ", val.Tag()))
-			// 	}
-			// }
+			var message = []string{}
+			for _, val := range err.(validator.ValidationErrors) {
+
+				message = append(message, fmt.Sprint("eror pada ", val.Field()))
+			}
 			return c.JSON(http.StatusBadRequest,
-				helper.ResponseFormat(http.StatusBadRequest, "data yang dikirim kurang sesuai", nil))
+				helper.ResponseFormat(http.StatusBadRequest, message, nil))
 		}
 
 		var processInput model.Todo
@@ -117,17 +113,24 @@ func (us *TodoController) AddTodo() echo.HandlerFunc {
 // 	}
 // }
 
-// func (us *TodoController) GetTodos() echo.HandlerFunc {
-// 	return func(c echo.Context) error {
-// 		listTodo, err := us.Model.GetAllTodo()
-// 		if err != nil {
-// 			return c.JSON(http.StatusInternalServerError,
-// 				helper.ResponseFormat(http.StatusInternalServerError, "terjadi kesalahan pada sistem", nil))
-// 		}
-// 		return c.JSON(http.StatusOK,
-// 			helper.ResponseFormat(http.StatusOK, "berhasil mendapatkan data", listTodo))
-// 	}
-// }
+func (us *TodoController) GetTodos() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		token := c.Get("user").(*golangjwt.Token)
+		id, err := middlewares.ExtractId(token)
+		if err != nil {
+			log.Println(err.Error())
+			return c.JSON(http.StatusUnauthorized, helper.ResponseFormat(http.StatusUnauthorized, "harap login", nil))
+
+		}
+		listTodo, err := us.Model.GetTodos(id)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError,
+				helper.ResponseFormat(http.StatusInternalServerError, "terjadi kesalahan pada sistem", nil))
+		}
+		return c.JSON(http.StatusOK,
+			helper.ResponseFormat(http.StatusOK, "berhasil mendapatkan data", listTodo))
+	}
+}
 
 // func (us *TodoController) GetTodo() echo.HandlerFunc {
 // 	return func(c echo.Context) error {
