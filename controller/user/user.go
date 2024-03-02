@@ -34,18 +34,20 @@ func (us *UserController) Register() echo.HandlerFunc {
 		err = validate.Struct(input)
 
 		if err != nil {
-			// var message = []string{}
-			// for _, val := range err.(validator.ValidationErrors) {
-			// 	if val.Tag() == "required" {
-			// 		message = append(message, fmt.Sprint(val.Field(), " wajib diisi"))
-			// 	} else if val.Tag() == "min" {
-			// 		message = append(message, fmt.Sprint(val.Field(), " minimal 10 digit"))
-			// 	} else {
-			// 		message = append(message, fmt.Sprint(val.Field(), " ", val.Tag()))
-			// 	}
+
+			var message = []string{}
+			for _, val := range err.(validator.ValidationErrors) {
+				message = append(message, fmt.Sprint("error pada ", val.Field()))
+				// 	if val.Tag() == "required" {
+				// 		message = append(message, fmt.Sprint(val.Field(), " wajib diisi"))
+				// 	} else if val.Tag() == "min" {
+				// 		message = append(message, fmt.Sprint(val.Field(), " minimal 10 digit"))
+				// 	} else {
+				// 		message = append(message, fmt.Sprint(val.Field(), " ", val.Tag()))
+			}
 			// }
 			return c.JSON(http.StatusBadRequest,
-				helper.ResponseFormat(http.StatusBadRequest, "data yang dikirim kurang sesuai", nil))
+				helper.ResponseFormat(http.StatusBadRequest, message, nil))
 		}
 
 		var processInput model.User

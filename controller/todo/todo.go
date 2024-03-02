@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	golangjwt "github.com/golang-jwt/jwt/v5"
@@ -50,7 +51,7 @@ func (us *TodoController) AddTodo() echo.HandlerFunc {
 			var message = []string{}
 			for _, val := range err.(validator.ValidationErrors) {
 
-				message = append(message, fmt.Sprint("eror pada ", val.Field()))
+				message = append(message, fmt.Sprint("error pada ", val.Field()))
 			}
 			return c.JSON(http.StatusBadRequest,
 				helper.ResponseFormat(http.StatusBadRequest, message, nil))
@@ -127,8 +128,52 @@ func (us *TodoController) GetTodos() echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError,
 				helper.ResponseFormat(http.StatusInternalServerError, "terjadi kesalahan pada sistem", nil))
 		}
+		var result []TodoResponse
+		for _, val := range listTodo {
+			var data TodoResponse
+			data.Deadline = val.Deadline
+			data.Deskripsi = val.Deskripsi
+			data.Kegiatan = val.Kegiatan
+
+			result = append(result, data)
+		}
+
 		return c.JSON(http.StatusOK,
-			helper.ResponseFormat(http.StatusOK, "berhasil mendapatkan data", listTodo))
+			helper.ResponseFormat(http.StatusOK, "berhasil mendapatkan data", result))
+	}
+}
+
+func (us *TodoController) GetTodo() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		token := c.Get("user").(*golangjwt.Token)
+		id, err := middlewares.ExtractId(token)
+		if err != nil {
+			log.Println(err.Error())
+			return c.JSON(http.StatusUnauthorized, helper.ResponseFormat(http.StatusUnauthorized, "harap login", nil))
+
+		}
+		idTodo, _ := strconv.Atoi(c.Param("id"))
+
+		val, err := us.Model.GetTodo(uint(idTodo))
+		if err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				return c.JSON(http.StatusNotFound,
+					helper.ResponseFormat(http.StatusNotFound, "tidak ditemukan to do", nil))
+			}
+			return c.JSON(http.StatusInternalServerError,
+				helper.ResponseFormat(http.StatusInternalServerError, "terjadi kesalahan pada sistem", nil))
+		}
+		var result TodoResponse
+		if val.UserID != id {
+			return c.JSON(http.StatusUnauthorized,
+				helper.ResponseFormat(http.StatusUnauthorized, "anda tidak bisa mengakses item ini", nil))
+		}
+		result.Deadline = val.Deadline
+		result.Deskripsi = val.Deskripsi
+		result.Kegiatan = val.Kegiatan
+
+		return c.JSON(http.StatusOK,
+			helper.ResponseFormat(http.StatusOK, "berhasil mendapatkan data", result))
 	}
 }
 

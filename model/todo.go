@@ -45,9 +45,20 @@ func (um *TodoModel) AddTodo(newData Todo) (Todo, error) {
 func (um *TodoModel) GetTodos(id uint) ([]Todo, error) {
 	var result []Todo
 
-	if err := um.Connection.Find(&result).Where("user id = ?", id).Error; err != nil {
+	if err := um.Connection.Where("user_id = ?", id).Find(&result).Error; err != nil {
 		log.Println(err.Error())
 		return nil, err
+	}
+
+	return result, nil
+}
+
+func (um *TodoModel) GetTodo(id uint) (Todo, error) {
+	var result Todo
+
+	if err := um.Connection.Where("id = ?", id).First(&result).Error; err != nil {
+		log.Println(err.Error())
+		return Todo{}, err
 	}
 
 	return result, nil
