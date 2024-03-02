@@ -1,0 +1,49 @@
+package model
+
+import "gorm.io/gorm"
+
+type Todo struct {
+	gorm.Model
+	Kegiatan  string `json:"nama" form:"nama" validate:"required"`
+	Deskripsi string `json:"hp" form:"hp" validate:"required,max=13,min=10"`
+	Deadline  string `json:"password" form:"password" validate:"required"`
+	UserID    uint
+}
+
+type TodoModel struct {
+	Connection *gorm.DB
+}
+
+func (um *TodoModel) AddTodo(newData Todo) (Todo, error) {
+	err := um.Connection.Create(&newData).Error
+	if err != nil {
+		return Todo{}, err
+	}
+
+	return newData, nil
+}
+
+// func (um *TodoModel) CekTodo(hp string) bool {
+// 	var data Todo
+// 	if err := um.Connection.Where("hp = ?", hp).First(&data).Error; err != nil {
+// 		return false
+// 	}
+// 	return true
+// }
+
+// func (um *TodoModel) Update(hp string, data Todo) error {
+// 	if err := um.Connection.Model(&data).Where("hp = ?", hp).Update("nama", data.Nama).Update("password", data.Password).Error; err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
+
+// func (um *TodoModel) GetAllTodo() ([]Todo, error) {
+// 	var result []Todo
+
+// 	if err := um.Connection.Find(&result).Error; err != nil {
+// 		return nil, err
+// 	}
+
+// 	return result, nil
+// }
