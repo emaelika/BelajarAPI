@@ -1,4 +1,4 @@
-package todo
+package handler
 
 type TodoResponse struct {
 	Kegiatan  string `json:"kegiatan" form:"kegiatan" validate:"required,max=25"`
