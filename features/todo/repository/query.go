@@ -39,3 +39,25 @@ func (tq query) AddTodo(newTodo todo.Todo) (todo.Todo, error) {
 
 	return result, nil
 }
+
+func (tq query) GetTodos(id uint) ([]todo.Todo, error) {
+	var data []TodoModel
+
+	if err := tq.connection.Where("user_id = ?", id).Find(&data).Error; err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+	var results []todo.Todo
+	for _, val := range data {
+		var result = todo.Todo{
+			ID:        val.ID,
+			UserID:    val.UserID,
+			Kegiatan:  val.Kegiatan,
+			Deskripsi: val.Deskripsi,
+			Deadline:  val.Deadline,
+		}
+		results = append(results, result)
+	}
+
+	return results, nil
+}

@@ -7,14 +7,17 @@ import (
 
 type TodoController interface {
 	AddTodo() echo.HandlerFunc
+	GetTodos() echo.HandlerFunc
 }
 
 type TodoService interface {
 	AddTodo(pemilik *jwt.Token, kegiatanBaru Todo) (Todo, error)
+	GetTodos(pemilik *jwt.Token) ([]Todo, error)
 }
 
 type TodoQuery interface {
 	AddTodo(newData Todo) (Todo, error)
+	GetTodos(id uint) ([]Todo, error)
 }
 
 type Todo struct {

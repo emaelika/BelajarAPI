@@ -2,6 +2,7 @@ package service
 
 import (
 	"21-api/features/todo"
+	"21-api/features/todo/handler"
 	"21-api/middlewares"
 	"errors"
 	"log"
@@ -29,7 +30,12 @@ func (ts service) AddTodo(pemilik *jwt.Token, kegiatanBaru todo.Todo) (todo.Todo
 		return todo.Todo{}, err
 	}
 
-	err = ts.v.Struct(&kegiatanBaru)
+	var cekValid = handler.TodoRequest{
+		Kegiatan:  kegiatanBaru.Kegiatan,
+		Deadline:  kegiatanBaru.Deadline,
+		Deskripsi: kegiatanBaru.Deskripsi,
+	}
+	err = ts.v.Struct(&cekValid)
 	if err != nil {
 		log.Println("error validasi", err.Error())
 		return todo.Todo{}, errors.New("data tidak valid")
@@ -38,7 +44,7 @@ func (ts service) AddTodo(pemilik *jwt.Token, kegiatanBaru todo.Todo) (todo.Todo
 	kegiatanBaru.UserID = userID
 	result, err := ts.tq.AddTodo(kegiatanBaru)
 	if err != nil {
-		log.Println("query error", err.Error())
+		log.Println("service error", err.Error())
 		return todo.Todo{}, err
 	}
 	return result, nil
