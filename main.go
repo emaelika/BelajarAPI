@@ -25,5 +25,5 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.CORS()) // ini aja cukup
 	routes.InitRoute(e, c, tc)
-	e.Logger.Fatal(e.Start(":1323"))
+	e.Logger.Fatal(e.Start(":8000"))
 }
