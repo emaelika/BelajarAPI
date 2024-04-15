@@ -61,3 +61,43 @@ func (tq query) GetTodos(id uint) ([]todo.Todo, error) {
 
 	return results, nil
 }
+
+func (tq query) GetTodo(id uint) (todo.Todo, error) {
+	var data TodoModel
+
+	if err := tq.connection.Where("id = ?", id).Find(&data).Error; err != nil {
+		log.Println(err.Error())
+		return todo.Todo{}, err
+	}
+
+	var result = todo.Todo{
+		ID:        data.ID,
+		UserID:    data.UserID,
+		Kegiatan:  data.Kegiatan,
+		Deskripsi: data.Deskripsi,
+		Deadline:  data.Deadline,
+	}
+
+	return result, nil
+}
+func (tq query) UpdateTodo(update todo.Todo) (todo.Todo, error) {
+	var data TodoModel
+	log.Println(update)
+	if err := tq.connection.First(&data, update.ID).
+		Error; err != nil {
+		log.Println(err.Error())
+		return todo.Todo{}, err
+	}
+	data.Deskripsi = update.Deskripsi
+	data.Deadline = update.Deadline
+	data.Kegiatan = update.Kegiatan
+	if err := tq.connection.Save(&data).
+		Error; err != nil {
+		log.Println(err.Error())
+		return todo.Todo{}, err
+	}
+
+	log.Println(update)
+
+	return update, nil
+}

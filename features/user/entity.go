@@ -28,4 +28,5 @@ type User struct {
 	Nama     string `validate:"required"`
 	Hp       string `validate:"required,max=13,min=10"`
 	Password string `validate:"required"`
+	Credit   int
 }

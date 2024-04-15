@@ -2,6 +2,7 @@ package routes
 
 import (
 	"21-api/config"
+	"21-api/features/file"
 	"21-api/features/todo"
 	"21-api/features/user"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func InitRoute(c *echo.Echo, ctl user.UserController, tc todo.TodoController) {
+func InitRoute(c *echo.Echo, ctl user.UserController, tc todo.TodoController, fc file.Handler) {
 	c.POST("/users", ctl.Register()) // register -> umum (boleh diakses semua orang)
 	c.POST("/login", ctl.Login())
 	// c.GET("/users", ctl.ListUser(), echojwt.WithConfig(echojwt.Config{
@@ -28,10 +29,12 @@ func InitRoute(c *echo.Echo, ctl user.UserController, tc todo.TodoController) {
 	c.GET("/todos", tc.GetTodos(), echojwt.WithConfig(echojwt.Config{
 		SigningKey: []byte(config.JWTSECRET),
 	}))
-	// c.GET("/todos/:id", tc.GetTodo(), echojwt.WithConfig(echojwt.Config{
-	// 	SigningKey: []byte(config.JWTSECRET),
-	// }))
-	// c.PUT("/todos/:id", tc.UpdateTodo(), echojwt.WithConfig(echojwt.Config{
-	// 	SigningKey: []byte(config.JWTSECRET),
-	// }))
+	c.GET("/todos/:id", tc.GetTodo(), echojwt.WithConfig(echojwt.Config{
+		SigningKey: []byte(config.JWTSECRET),
+	}))
+	c.PUT("/todos/:id", tc.UpdateTodo(), echojwt.WithConfig(echojwt.Config{
+		SigningKey: []byte(config.JWTSECRET),
+	}))
+	c.POST("/uploads", fc.Upload())
+	c.GET("/uploads/:id/:filename", fc.Get())
 }
