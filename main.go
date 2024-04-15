@@ -2,6 +2,8 @@ package main
 
 import (
 	"21-api/config"
+	fh "21-api/features/file/handler"
+	fs "21-api/features/file/services"
 	th "21-api/features/todo/handler"
 	tr "21-api/features/todo/repository"
 	ts "21-api/features/todo/service"
@@ -27,10 +29,11 @@ func main() {
 	ts := ts.NewTodoService(tq)
 	th := th.NewHandler(ts)
 	// bagian yang menghandle segala hal yang berurusan dengan HTTP / echo
-
+	serv := fs.New()
+	hand := fh.New(serv)
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Logger())
 	e.Use(middleware.CORS()) // ini aja cukup
-	routes.InitRoute(e, uh, th)
+	routes.InitRoute(e, uh, th, hand)
 	e.Logger.Fatal(e.Start(":1323"))
 }

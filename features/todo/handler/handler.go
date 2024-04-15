@@ -5,6 +5,7 @@ import (
 	"21-api/helper"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	golangjwt "github.com/golang-jwt/jwt/v5"
@@ -59,160 +60,119 @@ func (us *controller) AddTodo() echo.HandlerFunc {
 	}
 }
 
-// func (us *TodoController) GetTodos() echo.HandlerFunc {
-// 	return func(c echo.Context) error {
-// 		token := c.Get("user").(*golangjwt.Token)
-// 		id, err := middlewares.ExtractId(token)
-// 		if err != nil {
-// 			log.Println(err.Error())
-// 			return c.JSON(http.StatusUnauthorized, helper.ResponseFormat(http.StatusUnauthorized, "harap login", nil))
+func (us *controller) GetTodos() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		token, ok := c.Get("user").(*golangjwt.Token)
+		if !ok {
+			log.Println("kesalahan dalam mengambil token")
+			return c.JSON(http.StatusUnauthorized,
+				helper.ResponseFormat(http.StatusUnauthorized, "terjadi kesalahan pada token", nil))
 
-// 		}
-// 		listTodo, err := us.Model.GetTodos(id)
-// 		if err != nil {
-// 			return c.JSON(http.StatusInternalServerError,
-// 				helper.ResponseFormat(http.StatusInternalServerError, "terjadi kesalahan pada sistem", nil))
-// 		}
-// 		var result []TodoResponse
-// 		for _, val := range listTodo {
-// 			var data TodoResponse
-// 			data.Deadline = val.Deadline
-// 			data.Deskripsi = val.Deskripsi
-// 			data.Kegiatan = val.Kegiatan
+		}
+		listTodo, err := us.s.GetTodos(token)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError,
+				helper.ResponseFormat(http.StatusInternalServerError, "terjadi kesalahan pada sistem", nil))
+		}
+		var result []GetTodosResponse
+		for _, val := range listTodo {
+			var data GetTodosResponse
+			data.ID = val.ID
+			data.Deadline = val.Deadline
+			data.Deskripsi = val.Deskripsi
+			data.Kegiatan = val.Kegiatan
 
-// 			result = append(result, data)
-// 		}
+			result = append(result, data)
+		}
 
-// 		return c.JSON(http.StatusOK,
-// 			helper.ResponseFormat(http.StatusOK, "berhasil mendapatkan data", result))
-// 	}
-// }
+		return c.JSON(http.StatusOK,
+			helper.ResponseFormat(http.StatusOK, "berhasil mendapatkan data", result))
+	}
+}
 
-// func (us *TodoController) GetTodo() echo.HandlerFunc {
-// 	return func(c echo.Context) error {
-// 		token := c.Get("user").(*golangjwt.Token)
-// 		id, err := middlewares.ExtractId(token)
-// 		if err != nil {
-// 			log.Println(err.Error())
-// 			return c.JSON(http.StatusUnauthorized, helper.ResponseFormat(http.StatusUnauthorized, "harap login", nil))
+func (us *controller) GetTodo() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		token := c.Get("user").(*golangjwt.Token)
 
-// 		}
-// 		idTodo, _ := strconv.Atoi(c.Param("id"))
+		idTodo, _ := strconv.Atoi(c.Param("id"))
+		if idTodo == 0 {
+			return c.JSON(http.StatusBadRequest,
+				helper.ResponseFormat(http.StatusBadRequest, "parameter yang dikirimkan tidak sesuai", nil))
 
-// 		val, err := us.Model.GetTodo(uint(idTodo))
-// 		if err != nil {
-// 			if strings.Contains(err.Error(), "not found") {
-// 				return c.JSON(http.StatusNotFound,
-// 					helper.ResponseFormat(http.StatusNotFound, "tidak ditemukan to do", nil))
-// 			}
-// 			return c.JSON(http.StatusInternalServerError,
-// 				helper.ResponseFormat(http.StatusInternalServerError, "terjadi kesalahan pada sistem", nil))
-// 		}
-// 		var result TodoResponse
-// 		if val.UserID != id {
-// 			return c.JSON(http.StatusUnauthorized,
-// 				helper.ResponseFormat(http.StatusUnauthorized, "anda tidak bisa mengakses item ini", nil))
-// 		}
-// 		result.Deadline = val.Deadline
-// 		result.Deskripsi = val.Deskripsi
-// 		result.Kegiatan = val.Kegiatan
+		}
 
-// 		return c.JSON(http.StatusOK,
-// 			helper.ResponseFormat(http.StatusOK, "berhasil mendapatkan data", result))
-// 	}
-// }
+		val, err := us.s.GetTodo(token, uint(idTodo))
+		if err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				return c.JSON(http.StatusNotFound,
+					helper.ResponseFormat(http.StatusNotFound, "tidak ditemukan to do", nil))
+			}
+			if strings.Contains(err.Error(), "unauthorized") {
+				return c.JSON(http.StatusUnauthorized,
+					helper.ResponseFormat(http.StatusUnauthorized, "todo tersebut bukan milik anda", nil))
+			}
+			return c.JSON(http.StatusInternalServerError,
+				helper.ResponseFormat(http.StatusInternalServerError, "terjadi kesalahan pada sistem", nil))
+		}
+		var result TodoResponse
 
-// func (us *TodoController) UpdateTodo() echo.HandlerFunc {
-// 	return func(c echo.Context) error {
-// 		// Ambil ID
-// 		token := c.Get("user").(*golangjwt.Token)
-// 		id, err := middlewares.ExtractId(token)
-// 		if err != nil {
-// 			log.Println(err.Error())
-// 			return c.JSON(http.StatusUnauthorized, helper.ResponseFormat(http.StatusUnauthorized, "harap login", nil))
+		result.Deadline = val.Deadline
+		result.Deskripsi = val.Deskripsi
+		result.Kegiatan = val.Kegiatan
 
-// 		}
-// 		idTodo, _ := strconv.Atoi(c.Param("id"))
+		return c.JSON(http.StatusOK,
+			helper.ResponseFormat(http.StatusOK, "berhasil mendapatkan data", result))
+	}
+}
 
-// 		// Bind Input
-// 		var input TodoUpdateRequest
-// 		err = c.Bind(&input)
-// 		if err != nil {
-// 			log.Println(err.Error())
-// 			if strings.Contains(err.Error(), "unsupport") {
+func (us *controller) UpdateTodo() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Ambil ID
+		token := c.Get("user").(*golangjwt.Token)
 
-// 				return c.JSON(http.StatusUnsupportedMediaType,
-// 					helper.ResponseFormat(http.StatusUnsupportedMediaType, "format data tidak didukung", nil))
-// 			}
-// 			return c.JSON(http.StatusBadRequest,
-// 				helper.ResponseFormat(http.StatusBadRequest, "data yang dikirmkan tidak sesuai", nil))
-// 		}
+		idTodo, _ := strconv.Atoi(c.Param("id"))
+		if idTodo == 0 {
+			return c.JSON(http.StatusBadRequest,
+				helper.ResponseFormat(http.StatusBadRequest, "parameter yang dikirmkan tidak sesuai", nil))
 
-// 		// Validasi
-// 		validate := validator.New(validator.WithRequiredStructEnabled())
-// 		err = validate.Struct(input)
+		}
 
-// 		if err != nil {
+		// Bind Input
+		var input TodoUpdateRequest
+		err := c.Bind(&input)
+		if err != nil {
+			log.Println(err.Error())
+			if strings.Contains(err.Error(), "unsupport") {
 
-// 			log.Println(err.Error())
-// 			var message = []string{}
-// 			for _, val := range err.(validator.ValidationErrors) {
+				return c.JSON(http.StatusUnsupportedMediaType,
+					helper.ResponseFormat(http.StatusUnsupportedMediaType, "format data tidak didukung", nil))
+			}
+			return c.JSON(http.StatusBadRequest,
+				helper.ResponseFormat(http.StatusBadRequest, "data yang dikirmkan tidak sesuai", nil))
+		}
 
-// 				message = append(message, fmt.Sprint("error pada ", val.Field()))
-// 			}
-// 			return c.JSON(http.StatusBadRequest,
-// 				helper.ResponseFormat(http.StatusBadRequest, message, nil))
-// 		}
+		// parsing
+		var processInput = todo.Todo{
+			ID:        uint(idTodo),
+			Kegiatan:  input.Kegiatan,
+			Deskripsi: input.Deskripsi,
+			Deadline:  input.Deadline,
+		}
 
-// 		// cek kesamaan ID User
-// 		val, err := us.Model.GetTodo(uint(idTodo))
-// 		if err != nil {
-// 			if strings.Contains(err.Error(), "not found") {
-// 				return c.JSON(http.StatusNotFound,
-// 					helper.ResponseFormat(http.StatusNotFound, "tidak ditemukan to do", nil))
-// 			}
-// 			return c.JSON(http.StatusInternalServerError,
-// 				helper.ResponseFormat(http.StatusInternalServerError, "terjadi kesalahan pada sistem", nil))
-// 		}
+		// Input
+		update, err := us.s.UpdateTodo(token, processInput) // ini adalah fungsi yang kita buat sendiri
+		if err != nil {
+			log.Println(err.Error())
+			return c.JSON(http.StatusInternalServerError,
+				helper.ResponseFormat(http.StatusInternalServerError, "terjadi kesalahan pada sistem", nil))
+		}
 
-// 		if val.UserID != id {
-// 			return c.JSON(http.StatusUnauthorized,
-// 				helper.ResponseFormat(http.StatusUnauthorized, "anda tidak bisa mengakses item ini", nil))
-// 		}
+		var result TodoResponse
+		result.Deadline = update.Deadline
+		result.Deskripsi = update.Deskripsi
+		result.Kegiatan = update.Kegiatan
 
-// 		// parsing
-// 		var processInput model.Todo
-// 		if input.Kegiatan != "" {
-// 			processInput.Kegiatan = input.Kegiatan
-// 		} else {
-// 			processInput.Kegiatan = val.Kegiatan
-// 		}
-// 		if input.Deskripsi != "" {
-// 			processInput.Deskripsi = input.Deskripsi
-// 		} else {
-// 			processInput.Deskripsi = val.Deskripsi
-// 		}
-// 		if input.Deadline != "" {
-// 			processInput.Deadline = input.Deadline
-// 		} else {
-// 			processInput.Deadline = val.Deadline
-// 		}
-// 		processInput.ID = val.ID
-
-// 		// Input
-// 		update, err := us.Model.UpdateTodo(processInput) // ini adalah fungsi yang kita buat sendiri
-// 		if err != nil {
-// 			log.Println(err.Error())
-// 			return c.JSON(http.StatusInternalServerError,
-// 				helper.ResponseFormat(http.StatusInternalServerError, "terjadi kesalahan pada sistem", nil))
-// 		}
-
-// 		var result TodoResponse
-// 		result.Deadline = update.Deadline
-// 		result.Deskripsi = update.Deskripsi
-// 		result.Kegiatan = update.Kegiatan
-
-// 		return c.JSON(http.StatusOK,
-// 			helper.ResponseFormat(http.StatusOK, "berhasil mendapatkan data", result))
-// 	}
-// }
+		return c.JSON(http.StatusCreated,
+			helper.ResponseFormat(http.StatusCreated, "berhasil memperbarui data", result))
+	}
+}
