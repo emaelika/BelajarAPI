@@ -2,11 +2,17 @@ package main
 
 import (
 	"21-api/config"
-	"21-api/controller/todo"
-	"21-api/controller/user"
-	"21-api/model"
+	fh "21-api/features/file/handler"
+	fs "21-api/features/file/services"
+	th "21-api/features/todo/handler"
+	tr "21-api/features/todo/repository"
+	ts "21-api/features/todo/service"
+	uh "21-api/features/user/handler"
+	ur "21-api/features/user/repository"
+	us "21-api/features/user/service"
 	"21-api/routes"
-"log"
+	"log"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -17,14 +23,19 @@ func main() {
 	cfg := config.InitConfig() // baca seluruh system variable
 	db := config.InitSQL(cfg)  // konek DB
 
-	m := model.UserModel{Connection: db} // bagian yang menghungkan coding kita ke database / bagian dimana kita ngoding untk ke DB
-	c := user.UserController{Model: m}
+	uq := ur.NewUserQuery(db) // bagian yang menghungkan coding kita ke database / bagian dimana kita ngoding untk ke DB
+	us := us.NewUserService(uq)
+	uh := uh.NewHandler(us)
+
+	tq := tr.NewTodoQuery(db) // bagian yang menghungkan coding kita ke database / bagian dimana kita ngoding untk ke DB
+	ts := ts.NewTodoService(tq)
+	th := th.NewHandler(ts)
 	// bagian yang menghandle segala hal yang berurusan dengan HTTP / echo
-	tm := model.TodoModel{Connection: db}
-	tc := todo.TodoController{Model: tm}
+	serv := fs.New()
+	hand := fh.New(serv)
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Logger())
 	e.Use(middleware.CORS()) // ini aja cukup
-	routes.InitRoute(e, c, tc)
-	e.Logger.Fatal(e.Start(":8000"))
+	routes.InitRoute(e, uh, th, hand)
+	e.Logger.Fatal(e.Start(":1323"))
 }
