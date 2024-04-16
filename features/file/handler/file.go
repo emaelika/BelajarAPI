@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 
 	echo "github.com/labstack/echo/v4"
 )
@@ -57,7 +58,8 @@ func (at *Handler) Upload() echo.HandlerFunc {
 			fmt.Println("The provided directory named", dir, "exists")
 		}
 		// Destination
-		dst, err := os.Create(dirUser + "/" + file.Filename)
+		filename := strings.Replace(file.Filename, " ", "-", -1)
+		dst, err := os.Create(dirUser + "/" + filename)
 		if err != nil {
 			return err
 		}
@@ -68,7 +70,7 @@ func (at *Handler) Upload() echo.HandlerFunc {
 			return err
 		}
 		return c.JSON(http.StatusOK, map[string]string{"message": "success",
-			"data": dirUser + "/" + file.Filename})
+			"data": "localhost:1323/" + dirUser + "/" + filename})
 	}
 }
 
