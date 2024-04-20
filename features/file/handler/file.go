@@ -24,8 +24,8 @@ func New(s file.Service) file.Handler {
 func (at *Handler) Upload() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id := c.FormValue("id")
-		// name := c.FormValue("name")
-		// email := c.FormValue("email")
+		name := c.FormValue("name")
+		email := c.FormValue("email")
 
 		//-----------
 		// Read file
@@ -70,7 +70,9 @@ func (at *Handler) Upload() echo.HandlerFunc {
 			return err
 		}
 		return c.JSON(http.StatusOK, map[string]string{"message": "success",
-			"data": "localhost:1323/" + dirUser + "/" + filename})
+			"data":  "localhost:1323/" + dirUser + "/" + filename,
+			"name":  name,
+			"email": email})
 	}
 }
 
